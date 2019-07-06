@@ -1,5 +1,6 @@
 package coffee.model
 
+import io.ebean.annotation.Index
 import javax.persistence.Entity
 
 /**
@@ -11,6 +12,7 @@ import javax.persistence.Entity
 @Entity
 class Product : BaseModel() {
 
+    @Index(unique = true)
     var name: String = ""
 
     var price: Double = 0.0

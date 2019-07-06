@@ -2,8 +2,10 @@ package coffee.service
 
 import coffee.model.AuthenticationType
 import coffee.model.Product
+import coffee.model.Purchase
 import coffee.model.User
 import coffee.model.query.QProduct
+import coffee.model.query.QPurchase
 import coffee.model.query.QUser
 import io.ebean.Ebean
 import io.ktor.application.call
@@ -12,15 +14,23 @@ import io.ktor.auth.*
 import io.ktor.auth.ldap.ldapAuthenticate
 import io.ktor.features.ContentNegotiation
 import io.ktor.html.respondHtml
+import io.ktor.http.auth.HeaderValueEncoding
 import io.ktor.http.content.resource
 import io.ktor.http.content.static
+import io.ktor.http.httpDateFormat
 import io.ktor.jackson.jackson
+import io.ktor.request.*
 import io.ktor.response.respond
 import io.ktor.routing.get
+import io.ktor.routing.post
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import kotlinx.html.*
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import java.util.*
 
 /**
  *
@@ -142,6 +152,82 @@ fun main() {
                         }
                     }
                 }
+                post("/buy/") {
+                    val buy = call.receive<Buy>()
+
+                    val currentUser =
+                        QUser().name.equalTo(call.authentication.principal<UserIdPrincipal>()!!.name).findOne()!!
+                    val product = QProduct().name.equalTo(buy.productName).findOne()!!
+
+                    val purchase = Purchase(currentUser, product)
+                    purchase.quantity = buy.quantity
+                    purchase.save()
+                    call.respond("OK")
+                }
+                get("/purchases") {
+                    val accept = call.request.accept()
+                    val purchases = QPurchase().findList()
+                    if (accept != null && accept.contains("application/json")) {
+                        call.respond(purchases)
+                    } else {
+                        call.respondHtml {
+                            head {
+                                title("Prices")
+                            }
+                            body {
+                                table {
+                                    thead {
+                                        tr {
+                                            th {
+                                                text("Wat?")
+                                            }
+                                            th {
+                                                text("Wia vui?")
+                                            }
+                                            th {
+                                                text("Einzelpreis")
+                                            }
+                                            th {
+                                                text("Gesamt")
+                                            }
+                                            th {
+                                                text("Wann?")
+                                            }
+                                        }
+                                    }
+
+                                    tbody {
+                                        for (purchase in purchases) {
+                                            tr {
+                                                td {
+                                                    text(purchase.product.name)
+                                                }
+                                                td {
+                                                    text(purchase.quantity)
+                                                }
+                                                td {
+                                                    text(purchase.product.price)
+                                                }
+                                                td {
+                                                    text(purchase.product.price * purchase.quantity)
+                                                }
+                                                td {
+                                                    text(
+                                                        DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
+                                                            .withLocale(Locale.GERMANY)
+                                                            .withZone(ZoneId.systemDefault()).format(
+                                                                purchase.whenPurchased
+                                                            )
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             static("/static") {
@@ -149,6 +235,13 @@ fun main() {
             }
         }
     }.start(wait = true)
+}
+
+class Buy {
+
+    var productName: String = ""
+    val quantity: Int = 1
+
 }
 
 private fun internalAuthenticate(

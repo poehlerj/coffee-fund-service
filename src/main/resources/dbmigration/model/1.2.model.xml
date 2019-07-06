@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<migration xmlns="http://ebean-orm.github.io/xml/ns/dbmigration">
-    <changeSet type="apply">
-        <addColumn tableName="user">
-            <column name="password" type="varchar"/>
-        </addColumn>
-        <addUniqueConstraint constraintName="uq_user_name" tableName="user" columnNames="name" oneToOne="false" nullableColumns=""/>
-    </changeSet>
-</migration>
