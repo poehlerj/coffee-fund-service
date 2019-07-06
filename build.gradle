@@ -1,73 +1,65 @@
 buildscript {
     repositories {
         jcenter()
+        mavenCentral()
     }
 }
 
+
 plugins {
-    id 'org.jetbrains.kotlin.multiplatform' version '1.3.41'
+    id("idea")
+    id("org.jetbrains.kotlin.jvm") version "1.3.41"
+    id("org.jetbrains.kotlin.kapt") version "1.3.41"
+    id("io.ebean") version "11.40.1"
 }
+
 repositories {
     jcenter()
     maven { url "https://dl.bintray.com/kotlin/ktor" }
     mavenCentral()
 }
+
+def kotlin_version = "1.3.41"
+def ebean_version = '11.41.1'
 def ktor_version = '1.1.3'
 def logback_version = '1.2.3'
 
-kotlin {
-    jvm()
-    js {
-        browser {
-        }
-    }
-    sourceSets {
-        commonMain {
-            dependencies {
-                implementation kotlin('stdlib-common')
-            }
-        }
-        commonTest {
-            dependencies {
-                implementation kotlin('test-common')
-                implementation kotlin('test-annotations-common')
-            }
-        }
-        jvmMain {
-            dependencies {
-                implementation kotlin('stdlib-jdk8')
-                implementation "io.ktor:ktor-server-netty:$ktor_version"
-                implementation "io.ktor:ktor-html-builder:$ktor_version"
-                implementation "ch.qos.logback:logback-classic:$logback_version"
-            }
-        }
-        jvmTest {
-            dependencies {
-                implementation kotlin('test')
-                implementation kotlin('test-junit')
-            }
-        }
-        jsMain {
-            dependencies {
-                implementation kotlin('stdlib-js')
-            }
-        }
-        jsTest {
-            dependencies {
-                implementation kotlin('test-js')
-            }
-        }
-    }
+dependencies {
+
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    compile "org.slf4j:slf4j-api:1.7.25"
+    compile "org.avaje.composite:logback:1.1"
+
+    compile "io.ktor:ktor-server-netty:$ktor_version"
+    compile "io.ktor:ktor-html-builder:$ktor_version"
+    compile "io.ktor:ktor-jackson:$ktor_version"
+    compile "io.ktor:ktor-auth:$ktor_version"
+    compile "io.ktor:ktor-auth-ldap:$ktor_version"
+
+    compile "io.ebean:ebean:$ebean_version"
+    compile "io.ebean:ebean-querybean:$ebean_version"
+    compile "org.postgresql:postgresql:42.2.2"
+    compile "com.h2database:h2:1.4.199"
+
+    kapt "io.ebean:kotlin-querybean-generator:11.39.3"
+
+    testCompile "io.ebean.test:ebean-test-config:11.39.1"
+    testCompile "org.avaje.composite:junit:1.1"
 }
 
-jvmJar {
-    dependsOn(jsBrowserWebpack)
-    from(new File(jsBrowserWebpack.entry.name, jsBrowserWebpack.outputPath))
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
 }
 
-task run(type: JavaExec, dependsOn: [jvmJar]) {
-    group = "application"
-    main = "sample.SampleJvmKt"
-    classpath(configurations.jvmRuntimeClasspath, jvmJar)
-    args = []
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
+ebean {
+    debugLevel = 1
+}
+
+test {
+    testLogging.showStandardStreams = true
+    testLogging.exceptionFormat = 'full'
 }

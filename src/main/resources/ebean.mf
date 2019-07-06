@@ -1,0 +1,2 @@
+entity-packages: coffee.model
+querybean-packages: coffee.model
