@@ -69,28 +69,21 @@ fun main() {
 
 
     embeddedServer(Netty, port = 8081, host = "127.0.0.1") {
-        install(ContentNegotiation) {
-            jackson {
-
-            }
-        }
+        install(ContentNegotiation) { jackson { } }
 
         install(Authentication) {
             basic(name = "coffeeAuth") {
                 realm = "FSinfo SSO"
                 validate { credentials ->
-                    val user = QUser().name.equalTo(credentials.name).findOne()
-                    if (user != null) {
-                        when (user.authenticationType) {
-                            AuthenticationType.INTERNAL -> internalAuthenticate(user, credentials)
+                    QUser().name.equalTo(credentials.name).findOne()?.let{
+                        when (it.authenticationType) {
+                            AuthenticationType.INTERNAL -> internalAuthenticate(it, credentials)
                             AuthenticationType.LDAP -> ldapAuthenticate(
                                 credentials,
                                 "ldap://localhost:1389",
                                 "uid=%s,ou=users,dc=fsinfo,dc=fim,dc=uni-passau,dc=de"
                             )
                         }
-                    } else {
-                        null
                     }
                 }
             }
@@ -228,6 +221,13 @@ fun main() {
                         }
                     }
                 }
+                get("/saldo") {
+                    val currentUser =
+                        QUser().name.equalTo(call.authentication.principal<UserIdPrincipal>()!!.name).findOne()!!
+                    call.respond(QPurchase().user.equalTo(currentUser).findList()
+                        .map { it.quantity * it.product.price }
+                        .sum())
+                }
             }
 
             static("/static") {
@@ -238,10 +238,8 @@ fun main() {
 }
 
 class Buy {
-
     var productName: String = ""
     val quantity: Int = 1
-
 }
 
 private fun internalAuthenticate(

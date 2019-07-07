@@ -1,5 +1,6 @@
 package coffee.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import io.ebean.annotation.Index
 import javax.persistence.Entity
 import javax.persistence.EnumType
@@ -20,6 +21,7 @@ class User : BaseModel() {
     @Enumerated(EnumType.STRING)
     var authenticationType: AuthenticationType = AuthenticationType.INTERNAL
 
+    @JsonIgnore
     var password: String? = null
 
 }
