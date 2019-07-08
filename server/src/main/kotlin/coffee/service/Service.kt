@@ -235,8 +235,11 @@ fun main() {
 
             static("/static") {
                 resource("kotlin.js")
+                resource("kotlin.js.map")
                 resource("common.js")
+                resource("common.js.map")
                 resource("web.js")
+                resource("web.js.map")
             }
         }
     }.start(wait = true)

@@ -16,6 +16,7 @@ kotlin {
                 kotlinOptions {
                     moduleKind = "umd"
                     outputFile = "${project.buildDir}/js/${project.name}.js"
+                    sourceMapEmbedSources = "always"
                 }
             })
         }

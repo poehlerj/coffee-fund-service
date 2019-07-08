@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<migration xmlns="http://ebean-orm.github.io/xml/ns/dbmigration">
+    <changeSet type="apply">
+        <createTable name="product" identityType="external" pkName="pk_product">
+            <column name="id" type="uuid" primaryKey="true" identity="true"/>
+            <column name="name" type="varchar" notnull="true"/>
+            <column name="price" type="double" notnull="true"/>
+            <uniqueConstraint name="uq_product_name" columnNames="name" oneToOne="false" nullableColumns=""/>
+        </createTable>
+        <createTable name="purchase" identityType="external" pkName="pk_purchase">
+            <column name="id" type="uuid" primaryKey="true" identity="true"/>
+            <column name="user_id" type="uuid" notnull="true" references="user.id" foreignKeyName="fk_purchase_user_id" foreignKeyIndex="ix_purchase_user_id"/>
+            <column name="product_id" type="uuid" notnull="true" references="product.id" foreignKeyName="fk_purchase_product_id" foreignKeyIndex="ix_purchase_product_id"/>
+            <column name="quantity" type="integer" notnull="true"/>
+            <column name="when_purchased" type="timestamp" notnull="true"/>
+        </createTable>
+        <createTable name="user" identityType="external" pkName="pk_user">
+            <column name="id" type="uuid" primaryKey="true" identity="true"/>
+            <column name="name" type="varchar" notnull="true"/>
+            <column name="authentication_type" type="varchar(8)" notnull="true" checkConstraint="check ( authentication_type in ('INTERNAL','LDAP'))" checkConstraintName="ck_user_authentication_type"/>
+            <column name="password" type="varchar"/>
+            <uniqueConstraint name="uq_user_name" columnNames="name" oneToOne="false" nullableColumns=""/>
+        </createTable>
+    </changeSet>
+</migration>
