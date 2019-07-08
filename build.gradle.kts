@@ -8,7 +8,6 @@ buildscript {
     dependencies {
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.41")
         embeddedKotlin("kotlin-allopen")
-        classpath("org.jetbrains.kotlin:kotlin-frontend-plugin:0.0.45")
     }
 }
 
@@ -17,11 +16,18 @@ allprojects {
         plugin("idea")
     }
 
-    group = "coffee"
+    ext {
+        set("ebeanVersion", "11.41.1")
+        set("ebeanGradlePluginVersion", "11.40.1")
+        set("ebeanQueryBeanGeneratorVersion", "11.39.3")
 
-    repositories {
-        mavenCentral()
-        jcenter()
-        maven { url = uri("https://dl.bintray.com/kotlin/ktor") }
+        set("ktorVersion", "1.1.3")
+        set("logbackVersion", "1.2.3")
+        set("postgresVersion", "42.2.2")
+        set("h2Version", "1.4.199")
+
+        set("jvmTargetVersion", "1.8")
     }
+
+    group = "coffee"
 }

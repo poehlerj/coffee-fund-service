@@ -7,8 +7,6 @@ repositories {
 plugins {
     id("kotlin2js")
     id("kotlin-dce-js")
-    id("org.jetbrains.kotlin.frontend")
-
 }
 
 dependencies {
@@ -30,6 +28,10 @@ tasks {
     }.get()
 
     register<Sync>("assembleWeb") {
+        dependsOn("runDceKotlinJs")
+        dependsOn("classes")
+        dependsOn("compileKotlin2Js")
+        
         configurations.compile.forEach { file ->
             from(zipTree(file.absolutePath)) {
                 includeEmptyDirs = false
@@ -42,7 +44,6 @@ tasks {
         }
         from(compileKotlin2Js.destinationDir)
         into("${project.buildDir}/web")
-        dependsOn("classes")
     }
 
     getByName("assemble") {

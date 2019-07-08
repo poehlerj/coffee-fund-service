@@ -3,6 +3,14 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 repositories {
     maven { url = uri("https://dl.bintray.com/kotlin/ktor") }
+    mavenCentral()
+    jcenter()
+}
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
 }
 
 plugins {
@@ -11,15 +19,21 @@ plugins {
     id("io.ebean") version "11.40.1"
 }
 
-val ebeanVersion = "11.41.1"
-val ktorVersion = "1.1.3"
-val logbackVersion = "1.2.3"
+val ebeanVersion = ext.get("ebeanVersion")
+val ebeanQueryBeanGeneratorVersion = ext.get("ebeanQueryBeanGeneratorVersion")
+val ktorVersion = ext.get("ktorVersion")
+val postgresVersion = ext.get("postgresVersion")
+val logbackVersion = ext.get("logbackVersion")
+val h2Version = ext.get("h2Version")
 
+val jvmTargetVersion = ext.get("jvmTargetVersion") as String
+
+val mainClass = "coffee.service.ServiceKt"
 
 dependencies {
     compile(embeddedKotlin("stdlib-jdk8"))
 
-    compile("org.slf4j:slf4j-api:1.7.25")
+    runtimeOnly("org.slf4j:slf4j-api:1.7.25")
     compile("org.avaje.composite:logback:1.1")
 
     "io.ktor".let { k ->
@@ -34,13 +48,11 @@ dependencies {
         compile("$e:ebean:$ebeanVersion")
         compile("$e:ebean-querybean:$ebeanVersion")
 
-        testCompile("$e.test:ebean-test-config:11.39.1")
-
-        kapt("$e:kotlin-querybean-generator:11.39.3")
+        kapt("$e:kotlin-querybean-generator:$ebeanQueryBeanGeneratorVersion")
     }
 
-    compile("org.postgresql:postgresql:42.2.2")
-    compile("com.h2database:h2:1.4.199")
+    compile("org.postgresql:postgresql:$postgresVersion")
+    compile("com.h2database:h2:$h2Version")
     compile(project(":common"))
 
     testCompile("org.avaje.composite:junit:1.1")
@@ -48,7 +60,7 @@ dependencies {
 
 tasks {
     withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.jvmTarget = jvmTargetVersion
     }
 
     withType<Test> {
@@ -58,7 +70,14 @@ tasks {
 
     val jar = getByName<Jar>("jar") {
         dependsOn(":web:assemble")
+        classifier = "fatJar"
+        manifest {
+            attributes["Main-Class"] = mainClass
+        }
         from(File("${project(":web").buildDir}/web/"))
+        configurations.compile.forEach { file: File ->
+            from(zipTree(file.absoluteFile))
+        }
     }
 
     getByName("assemble") {
@@ -69,7 +88,7 @@ tasks {
         group = "application"
         dependsOn("jar")
         main = "coffee.service.ServiceKt"
-        classpath(project.configurations.compileClasspath, jar)
+        classpath(jar)
         jvmArgs()
     }
 
