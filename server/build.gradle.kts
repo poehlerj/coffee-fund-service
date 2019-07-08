@@ -74,9 +74,11 @@ tasks {
         manifest {
             attributes["Main-Class"] = mainClass
         }
-        from(File("${project(":web").buildDir}/web/"))
+        into("javascript") {
+            from(File("${project(":web").buildDir}/web/"))
+        }
         configurations.compile.forEach { file: File ->
-            from(zipTree(file.absoluteFile))
+            from(zipTree(file.absoluteFile)).into("")
         }
     }
 

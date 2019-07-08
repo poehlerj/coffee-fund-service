@@ -17,6 +17,8 @@ allprojects {
     }
 
     ext {
+        set("productionMode", false)
+
         set("ebeanVersion", "11.41.1")
         set("ebeanGradlePluginVersion", "11.40.1")
         set("ebeanQueryBeanGeneratorVersion", "11.39.3")

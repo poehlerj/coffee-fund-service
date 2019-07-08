@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile
+import org.jetbrains.kotlin.gradle.tasks.KotlinJsDce
 
 repositories {
     jcenter()
@@ -15,15 +16,21 @@ dependencies {
     compile(embeddedKotlin("stdlib-js"))
 }
 
+val productionMode = ext.get("productionMode") as Boolean
+
 tasks {
-    val compileKotlin2Js = named<Kotlin2JsCompile>("compileKotlin2Js") {
+    named<Kotlin2JsCompile>("compileKotlin2Js") {
         kotlinOptions {
             metaInfo = true
-            sourceMap = true
+            sourceMap = !productionMode
             moduleKind = "umd"
             main = "call"
             outputFile = "${project.buildDir}/js/${project.name}.js"
-            sourceMapEmbedSources = "always" // TODO: turn off in production
+            sourceMapEmbedSources = if (productionMode) {
+                "never"
+            } else {
+                "always"
+            }
         }
     }.get()
 
@@ -31,18 +38,8 @@ tasks {
         dependsOn("runDceKotlinJs")
         dependsOn("classes")
         dependsOn("compileKotlin2Js")
-        
-        configurations.compile.forEach { file ->
-            from(zipTree(file.absolutePath)) {
-                includeEmptyDirs = false
-                include { fileTreeElement ->
-                    val path = fileTreeElement.path
-                    (path.endsWith(".js") || path.endsWith(".js.map"))
-                            && (path.startsWith("META-INF/resources/") || !path.startsWith("META-INF/"))
-                }
-            }
-        }
-        from(compileKotlin2Js.destinationDir)
+
+        from(getByName<KotlinJsDce>("runDceKotlinJs").destinationDir)
         into("${project.buildDir}/web")
     }
 

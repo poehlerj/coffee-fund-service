@@ -15,7 +15,7 @@ import io.ktor.auth.*
 import io.ktor.auth.ldap.ldapAuthenticate
 import io.ktor.features.ContentNegotiation
 import io.ktor.html.respondHtml
-import io.ktor.http.content.resource
+import io.ktor.http.content.resources
 import io.ktor.http.content.static
 import io.ktor.jackson.jackson
 import io.ktor.request.accept
@@ -234,12 +234,7 @@ fun main() {
             }
 
             static("/static") {
-                resource("kotlin.js")
-                resource("kotlin.js.map")
-                resource("common.js")
-                resource("common.js.map")
-                resource("web.js")
-                resource("web.js.map")
+                resources("javascript")
             }
         }
     }.start(wait = true)

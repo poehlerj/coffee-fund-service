@@ -9,14 +9,21 @@ plugins {
     id("kotlin-multiplatform")
 }
 
+val productionMode = ext.get("productionMode") as Boolean
+
 kotlin {
     targets {
         targetFromPreset(presets.getAt("js"), "js") {
             tasks.getByName(compilations.getByName("main").compileKotlinTaskName, delegateClosureOf<KotlinJsCompile> {
                 kotlinOptions {
                     moduleKind = "umd"
+                    sourceMap = !productionMode
                     outputFile = "${project.buildDir}/js/${project.name}.js"
-                    sourceMapEmbedSources = "always"
+                    sourceMapEmbedSources = if (productionMode) {
+                        "never"
+                    } else {
+                        "always"
+                    }
                 }
             })
         }
