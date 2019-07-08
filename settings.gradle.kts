@@ -1,3 +1,3 @@
 rootProject.name = "coffee-fund"
 
-include("server")
+include(":common", ":web",  ":server")

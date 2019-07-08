@@ -1,11 +1,8 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.jetbrains.kotlin.gradle.tasks.KotlinTest
 
-buildscript {
-    repositories {
-        mavenCentral()
-    }
+repositories {
+    maven { url = uri("https://dl.bintray.com/kotlin/ktor") }
 }
 
 plugins {
@@ -14,13 +11,13 @@ plugins {
     id("io.ebean") version "11.40.1"
 }
 
-val kotlinVersion = "1.3.41"
 val ebeanVersion = "11.41.1"
 val ktorVersion = "1.1.3"
 val logbackVersion = "1.2.3"
 
+
 dependencies {
-    compile("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
+    compile(embeddedKotlin("stdlib-jdk8"))
 
     compile("org.slf4j:slf4j-api:1.7.25")
     compile("org.avaje.composite:logback:1.1")
@@ -44,6 +41,7 @@ dependencies {
 
     compile("org.postgresql:postgresql:42.2.2")
     compile("com.h2database:h2:1.4.199")
+    compile(project(":common"))
 
     testCompile("org.avaje.composite:junit:1.1")
 }
@@ -57,6 +55,24 @@ tasks {
         testLogging.showStandardStreams = true
         testLogging.exceptionFormat = TestExceptionFormat.FULL
     }
+
+    val jar = getByName<Jar>("jar") {
+        dependsOn(":web:assemble")
+        from(File("${project(":web").buildDir}/web/"))
+    }
+
+    getByName("assemble") {
+        dependsOn("jar")
+    }
+
+    register<JavaExec>("runServer") {
+        group = "application"
+        dependsOn("jar")
+        main = "coffee.service.ServiceKt"
+        classpath(project.configurations.compileClasspath, jar)
+        jvmArgs()
+    }
+
 }
 
 ebean {

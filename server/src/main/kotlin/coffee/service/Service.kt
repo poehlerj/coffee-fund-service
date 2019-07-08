@@ -1,5 +1,6 @@
 package coffee.service
 
+import coffee.common.PurchaseData
 import coffee.model.AuthenticationType
 import coffee.model.Product
 import coffee.model.Purchase
@@ -14,12 +15,11 @@ import io.ktor.auth.*
 import io.ktor.auth.ldap.ldapAuthenticate
 import io.ktor.features.ContentNegotiation
 import io.ktor.html.respondHtml
-import io.ktor.http.auth.HeaderValueEncoding
 import io.ktor.http.content.resource
 import io.ktor.http.content.static
-import io.ktor.http.httpDateFormat
 import io.ktor.jackson.jackson
-import io.ktor.request.*
+import io.ktor.request.accept
+import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.routing.get
 import io.ktor.routing.post
@@ -75,7 +75,7 @@ fun main() {
             basic(name = "coffeeAuth") {
                 realm = "FSinfo SSO"
                 validate { credentials ->
-                    QUser().name.equalTo(credentials.name).findOne()?.let{
+                    QUser().name.equalTo(credentials.name).findOne()?.let {
                         when (it.authenticationType) {
                             AuthenticationType.INTERNAL -> internalAuthenticate(it, credentials)
                             AuthenticationType.LDAP -> ldapAuthenticate(
@@ -141,19 +141,22 @@ fun main() {
                                         }
                                     }
                                 }
+                                script(src = "/static/kotlin.js") {}
+                                script(src = "/static/common.js") {}
+                                script(src = "/static/web.js") {}
                             }
                         }
                     }
                 }
                 post("/buy/") {
-                    val buy = call.receive<Buy>()
+                    val purchaseData = call.receive<PurchaseData>()
 
                     val currentUser =
                         QUser().name.equalTo(call.authentication.principal<UserIdPrincipal>()!!.name).findOne()!!
-                    val product = QProduct().name.equalTo(buy.productName).findOne()!!
+                    val product = QProduct().name.equalTo(purchaseData.productName).findOne()!!
 
                     val purchase = Purchase(currentUser, product)
-                    purchase.quantity = buy.quantity
+                    purchase.quantity = purchaseData.quantity
                     purchase.save()
                     call.respond("OK")
                 }
@@ -231,15 +234,12 @@ fun main() {
             }
 
             static("/static") {
-                resource("coffee-fund.js")
+                resource("kotlin.js")
+                resource("common.js")
+                resource("web.js")
             }
         }
     }.start(wait = true)
-}
-
-class Buy {
-    var productName: String = ""
-    val quantity: Int = 1
 }
 
 private fun internalAuthenticate(

@@ -1,19 +1,19 @@
 buildscript {
-    val kotlinVersion = "1.3.41"
-
     repositories {
         mavenCentral()
+        maven { url = uri("https://kotlin.bintray.com/kotlinx") }
+        maven { url = uri("https://dl.bintray.com/kotlin/kotlin-eap") }
     }
 
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
-        classpath("org.jetbrains.kotlin:kotlin-allopen:$kotlinVersion")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.41")
+        embeddedKotlin("kotlin-allopen")
+        classpath("org.jetbrains.kotlin:kotlin-frontend-plugin:0.0.45")
     }
 }
 
 allprojects {
     apply {
-        plugin("kotlin")
         plugin("idea")
     }
 
