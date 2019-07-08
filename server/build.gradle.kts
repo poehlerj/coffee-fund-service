@@ -70,14 +70,13 @@ tasks {
 
     val jar = getByName<Jar>("jar") {
         dependsOn(":web:assemble")
-        classifier = "fatJar"
         manifest {
             attributes["Main-Class"] = mainClass
         }
         into("javascript") {
             from(File("${project(":web").buildDir}/web/"))
         }
-        configurations.compile.forEach { file: File ->
+        configurations.compile.get().forEach { file: File ->
             from(zipTree(file.absoluteFile)).into("")
         }
     }

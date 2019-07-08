@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.js.inline.util.collectNamedFunctionsAndWrappers
+
 buildscript {
     repositories {
         mavenCentral()
@@ -33,3 +35,8 @@ allprojects {
 
     group = "coffee"
 }
+
+tasks.wrapper {
+    distributionType = Wrapper.DistributionType.ALL
+}
+
